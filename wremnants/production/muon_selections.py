@@ -278,6 +278,17 @@ def select_z_candidate(
 
     df = df.Filter(f"mll >= {mass_min} && mll < {mass_max}")
 
+    # calculate pseudomass
+    # need to figure out which muon is positive and which is negative
+    df = df.Define(f"{name_first}_charge", f"Muon_correctedCharge[{name_first}][0]")
+    df = df.Define(f"{name_second}_charge", f"Muon_correctedCharge[{name_second}][0]")
+
+    df = df.Define("pseudomass_ptPlus", f"({name_first}_charge > 0) ? {name_first}_pt0 : {name_second}_pt0")
+    df = df.Define("pseudomass_ptMinus", f"({name_first}_charge < 0) ? {name_first}_pt0 : {name_second}_pt0")
+
+    df = df.Define("pseudomassPlus", "mll * std::sqrt(pseudomass_ptPlus / pseudomass_ptMinus)")
+    df = df.Define("pseudomassMinus", "mll * std::sqrt(pseudomass_ptMinus / pseudomass_ptPlus)")
+
     return df
 
 
